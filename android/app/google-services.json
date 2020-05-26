@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "978472510880",
+    "firebase_url": "https://walletmanager-41053.firebaseio.com",
+    "project_id": "walletmanager-41053",
+    "storage_bucket": "walletmanager-41053.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:978472510880:android:84a2e951ad9b1e4e5b30c5",
+        "android_client_info": {
+          "package_name": "com.walletmanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "978472510880-qhfnsjief0646709orioo0uf4t3cdiof.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.walletmanager",
+            "certificate_hash": "7be2a47c977d17cc43d0d860d45a09f339fd686f"
+          }
+        },
+        {
+          "client_id": "978472510880-rp0q8vcbpdu5qhsp9kdfjn22nginta91.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXXRB9bczw5GlWt8ILjmEF1EJabRaCH0Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "978472510880-rp0q8vcbpdu5qhsp9kdfjn22nginta91.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
