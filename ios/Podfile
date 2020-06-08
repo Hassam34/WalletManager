@@ -36,6 +36,10 @@ target 'walletManager' do
 
   pod 'RNFBApp', :path => '../node_modules/@react-native-firebase/app'
 
+  pod 'RNReanimated', :path => '../node_modules/react-native-reanimated'
+
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
+
   target 'walletManagerTests' do
     inherit! :search_paths
     # Pods for testing
