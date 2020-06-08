@@ -14,11 +14,66 @@ import {
 } from 'react-native';
 import constants from '../Constants'
 import { Button, CardSection, Spinner } from '../components/common';
+import auth from '@react-native-firebase/auth';
+import { Overlay } from 'react-native-elements';
 
 const WIDTH = Math.round(Dimensions.get('window').width); a = 2;
 
 class Settings extends React.Component {
-    state = { stateLanguage: '', userInfo: '', loggedIn: false, email: '', password: '' }
+    state = { stateLanguage: '', userInfo: '', loggedIn: false, email: '', password: '', spinnerShow: false, isSignup: false }
+    handleLogin = () => {
+        this.setState({ spinnerShow: true })
+        if (this.state.email == '' || this.state.password == '') {
+            this.setState({ spinnerShow: false }, () => alert("Enter valid Data"))
+
+            alert("Enter valid Data")
+        }
+        else {
+            auth().signInWithEmailAndPassword(this.state.email, this.state.password)
+                .then((response) => {
+                    this.setState({ spinnerShow: false })
+                    console.log('The response is ', response)
+                    // this.props.navigation.navigate('Home')
+                    AsyncStorage.setItem('AccessTokenSimpleLogin', response.user.uid);
+                })
+                .catch((error) => {
+                    this.setState({ spinnerShow: false }, () => alert("Your error is :\n" + error))
+                    console.log('The error response is ', error)
+                }
+                )
+
+        }
+
+    }
+    handleSignup = () => {
+        this.setState({ spinnerShow: true })
+        if (this.state.email == '' || this.state.password == '') {
+            this.setState({ spinnerShow: false }, () => alert("Enter valid Data"))
+
+            alert("Enter valid Data")
+        }
+        else {
+            auth().createUserWithEmailAndPassword(this.state.email, this.state.password)
+                .then((response) => {
+                    this.setState({ spinnerShow: false })
+                    console.log('The catch response is ', response)
+                    // this.props.navigation.navigate('Home')
+                    AsyncStorage.setItem('AccessTokenSimpleLogin', response.user.uid);
+                    alert('New Account is Created')
+                })
+                .catch((error) => {
+                    this.setState({ spinnerShow: false }, () =>
+                        alert("Your error is :\n" + error)
+                    )
+                })
+        }
+    }
+    showSpinner() {
+        return (<View style={{}}>
+            <Spinner />
+        </View>)
+
+    }
     render() {
         return (
             <View style={styles.MainContainer}>
@@ -36,7 +91,20 @@ class Settings extends React.Component {
                                 underlineColorAndroid='transparent'
                                 onChangeText={email => this.setState({ email })}
                                 value={this.state.email}
-                                style={styles.inputStyle} />
+                                style={{
+                                    marginTop: 10,
+                                    paddingLeft: 10,
+                                    width: WIDTH - 55,
+                                    height: 50,
+                                    fontSize: 15,
+                                    backgroundColor: 'rgba(0,0,0,0.02)',
+                                    borderColor: this.state.isSignup ? constants.greenColor : constants.redColor,
+                                    shadowOpacity: 2,
+                                    borderRadius: 12,
+                                    borderWidth: 1,
+                                    marginHorizontal: 25,
+                                    color: constants.whiteColor
+                                }} />
                         </View>
                         <View>
                             <TextInput
@@ -46,7 +114,20 @@ class Settings extends React.Component {
                                 underlineColorAndroid='transparent'
                                 onChangeText={password => this.setState({ password })}
                                 value={this.state.password}
-                                style={styles.inputStyle} />
+                                style={{
+                                    marginTop: 10,
+                                    paddingLeft: 10,
+                                    width: WIDTH - 55,
+                                    height: 50,
+                                    fontSize: 15,
+                                    backgroundColor: 'rgba(0,0,0,0.02)',
+                                    borderColor: this.state.isSignup ? constants.greenColor : constants.redColor,
+                                    shadowOpacity: 2,
+                                    borderRadius: 12,
+                                    borderWidth: 1,
+                                    marginHorizontal: 25,
+                                    color: constants.whiteColor
+                                }} />
                         </View>
                     </View>
 
@@ -61,25 +142,49 @@ class Settings extends React.Component {
 
                         </TouchableOpacity>
                     </View>
-                    <CardSection>
-                        <TouchableOpacity
-                            onPress={
-                                () =>
-                                    this.props.navigation.navigate('Home')
-                            }
-                            style={styles.buttonStyle} >
-                            <View style={{ alignSelf: 'center' }}><View >
-                                {/* <Icon
-                                    name='facebook-square'
-                                    size={22}
-                                    color=constants.whiteColor
-                                    style={{ height: 25, width: 25, position: 'absolute', marginTop: 10 }} /> */}
-                                <Text style={styles.textStyle}>Login</Text>
-                            </View>
-                            </View>
-                        </TouchableOpacity>
+                    {this.state.isSignup
+                        ?
+                        <CardSection>
+                            <TouchableOpacity
+                                onPress={
+                                    () =>
+                                        // this.props.navigation.navigate('Home')
+                                        this.handleSignup()
+                                }
+                                style={styles.buttonStyleGreen} >
+                                <View style={{ alignSelf: 'center' }}><View >
+                                    {this.state.spinnerShow ?
+                                        this.showSpinner()
+                                        :
+                                        <Text style={styles.textStyle}>Sign Up</Text>
+                                    }
+                                </View>
+                                </View>
+                            </TouchableOpacity>
 
-                    </CardSection>
+                        </CardSection>
+                        :
+
+                        <CardSection>
+                            <TouchableOpacity
+                                onPress={
+                                    () =>
+                                        // this.props.navigation.navigate('Home')
+                                        this.handleLogin()
+                                }
+                                style={styles.buttonStyle} >
+                                <View style={{ alignSelf: 'center' }}><View >
+                                    {this.state.spinnerShow ?
+                                        this.showSpinner()
+                                        :
+                                        <Text style={styles.textStyle}>Login</Text>
+                                    }
+                                </View>
+                                </View>
+                            </TouchableOpacity>
+
+                        </CardSection>
+                    }
                     {/* <GoogleSigninButton
                         style={{ width: 192, height: 48 }}
                         size={GoogleSigninButton.Size.Wide}
@@ -94,12 +199,14 @@ class Settings extends React.Component {
                     <View>
                         <TouchableOpacity style={{ flexDirection: 'row' }}
                             //  onPress={() => this.props.navigation.navigate('Welcome')}
-                            onPress={() => Linking.openURL('https://www.facebook.com/hassamyahya.hassamyahya/')}
+                            onPress={() => this.setState({ isSignup: !this.state.isSignup })}
                         >
                             <Text style={{ color: constants.whiteColor, marginTop: 10, fontSize: 12 }}>
-                                Don't have an account?
-                    </Text>
-                            <Text style={{ color: constants.whiteColor, marginTop: 10, fontSize: 12, fontWeight: 'bold' }}> Sign up.</Text>
+                                {this.state.isSignup ? "Already have an account" : "Don't have an account?"}
+                            </Text>
+                            <Text style={{ color: constants.whiteColor, marginTop: 10, fontSize: 12, fontWeight: 'bold' }}>
+                                {this.state.isSignup ? " Login" : " Sign up"}
+                            </Text>
                         </TouchableOpacity>
                     </View>
 
@@ -177,6 +284,18 @@ const styles = StyleSheet.create({
         alignSelf: 'stretch',
         // borderColor:'#007aff',
         backgroundColor: constants.redColor,
+        // backgroundColor:constants.whiteColor,
+        // borderWidth:1,
+        marginLeft: 25,
+        marginRight: 25,
+        borderRadius: 5,
+    },
+    buttonStyleGreen: {
+        marginTop: 10,
+        flex: 1,
+        alignSelf: 'stretch',
+        // borderColor:'#007aff',
+        backgroundColor: constants.greenColor,
         // backgroundColor:constants.whiteColor,
         // borderWidth:1,
         marginLeft: 25,

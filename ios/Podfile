@@ -40,6 +40,8 @@ target 'walletManager' do
 
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
+  pod 'RNFBAuth', :path => '../node_modules/@react-native-firebase/auth'
+
   target 'walletManagerTests' do
     inherit! :search_paths
     # Pods for testing
