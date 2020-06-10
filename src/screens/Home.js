@@ -20,7 +20,7 @@ import { Overlay } from 'react-native-elements';
 const WIDTH = Math.round(Dimensions.get('window').width); a = 2;
 
 class Settings extends React.Component {
-    state = { stateLanguage: '', userInfo: '', loggedIn: false, email: '', password: '', spinnerShow: false, isSignup: false }
+    state = { stateLanguage: '', userInfo: '', loggedIn: false, email: '', password: '', spinnerShow: false, isSignup: false, forgetPassword: false }
     handleLogin = () => {
         this.setState({ spinnerShow: true })
         if (this.state.email == '' || this.state.password == '') {
@@ -55,11 +55,10 @@ class Settings extends React.Component {
         else {
             auth().createUserWithEmailAndPassword(this.state.email, this.state.password)
                 .then((response) => {
-                    this.setState({ spinnerShow: false })
-                    console.log('The catch response is ', response)
-                    // this.props.navigation.navigate('Home')
+                    this.setState({ spinnerShow: false }, () => alert('New Account is Created'))
+                    console.log('The create user response is ', response)
                     AsyncStorage.setItem('AccessTokenSimpleLogin', response.user.uid);
-                    alert('New Account is Created')
+
                 })
                 .catch((error) => {
                     this.setState({ spinnerShow: false }, () =>
@@ -67,6 +66,25 @@ class Settings extends React.Component {
                     )
                 })
         }
+    }
+    resetPassword = () => {
+        this.setState({ spinnerShow: true })
+        if (this.state.email == '') {
+            this.setState({ spinnerShow: false }, () => alert("Enter valid Data"))
+            alert("Enter valid Data")
+        }
+        else {
+            auth().sendPasswordResetEmail(this.state.email).then((response) => {
+                this.setState({ spinnerShow: false }, () => alert('Email has been send '))
+                console.log('The email reset response is ', response)
+            })
+                .catch((error) => {
+                    this.setState({ spinnerShow: false }, () =>
+                        alert("Your error is :\n" + error)
+                    )
+                })
+        }
+
     }
     showSpinner() {
         return (<View style={{}}>
@@ -106,39 +124,40 @@ class Settings extends React.Component {
                                     color: constants.whiteColor
                                 }} />
                         </View>
-                        <View>
-                            <TextInput
-                                secureTextEntry
-                                placeholder='Password'
-                                placeholderTextColor={constants.whiteColor}
-                                underlineColorAndroid='transparent'
-                                onChangeText={password => this.setState({ password })}
-                                value={this.state.password}
-                                style={{
-                                    marginTop: 10,
-                                    paddingLeft: 10,
-                                    width: WIDTH - 55,
-                                    height: 50,
-                                    fontSize: 15,
-                                    backgroundColor: 'rgba(0,0,0,0.02)',
-                                    borderColor: this.state.isSignup ? constants.greenColor : constants.redColor,
-                                    shadowOpacity: 2,
-                                    borderRadius: 12,
-                                    borderWidth: 1,
-                                    marginHorizontal: 25,
-                                    color: constants.whiteColor
-                                }} />
-                        </View>
+                        {!this.state.forgetPassword &&
+                            <View>
+                                <TextInput
+                                    secureTextEntry
+                                    placeholder='Password'
+                                    placeholderTextColor={constants.whiteColor}
+                                    underlineColorAndroid='transparent'
+                                    onChangeText={password => this.setState({ password })}
+                                    value={this.state.password}
+                                    style={{
+                                        marginTop: 10,
+                                        paddingLeft: 10,
+                                        width: WIDTH - 55,
+                                        height: 50,
+                                        fontSize: 15,
+                                        backgroundColor: 'rgba(0,0,0,0.02)',
+                                        borderColor: this.state.isSignup ? constants.greenColor : constants.redColor,
+                                        shadowOpacity: 2,
+                                        borderRadius: 12,
+                                        borderWidth: 1,
+                                        marginHorizontal: 25,
+                                        color: constants.whiteColor
+                                    }} />
+                            </View>
+                        }
                     </View>
 
                     <View style={{ marginTop: 7 }}>
-                        <TouchableOpacity onPress={() => Linking.openURL('https://www.facebook.com/hassamyahya.hassamyahya/')}
+                        <TouchableOpacity onPress={() => this.setState({ forgetPassword: !this.state.forgetPassword })}
                             style={{ flexDirection: 'row' }}
-                        //  onPress={() => this.props.navigation.navigate('HelpSign')}
                         >
 
-                            <Text style={{ color: constants.whiteColor, fontSize: 12 }}>Forgot your Login details?</Text>
-                            <Text style={{ color: constants.whiteColor, fontSize: 12, fontWeight: 'bold' }}> Get help signing in</Text>
+                            <Text style={{ color: constants.whiteColor, fontSize: 12 }}>{this.state.forgetPassword ? "" : "Forgot your Login details?"}</Text>
+                            <Text style={{ color: constants.whiteColor, fontSize: 12, fontWeight: 'bold' }}> {this.state.forgetPassword ? "Go to Login Screen" : "Get help signing in"}</Text>
 
                         </TouchableOpacity>
                     </View>
@@ -147,16 +166,22 @@ class Settings extends React.Component {
                         <CardSection>
                             <TouchableOpacity
                                 onPress={
-                                    () =>
-                                        // this.props.navigation.navigate('Home')
-                                        this.handleSignup()
+                                    () => {
+                                        if (this.state.forgetPassword) {
+                                            this.resetPassword()
+                                        }
+                                        else {
+                                            this.handleSignup()
+
+                                        }
+                                    }
                                 }
                                 style={styles.buttonStyleGreen} >
                                 <View style={{ alignSelf: 'center' }}><View >
                                     {this.state.spinnerShow ?
                                         this.showSpinner()
                                         :
-                                        <Text style={styles.textStyle}>Sign Up</Text>
+                                        <Text style={styles.textStyle}>{this.state.forgetPassword ? "Reset password" : "Sign Up"}</Text>
                                     }
                                 </View>
                                 </View>
@@ -168,16 +193,22 @@ class Settings extends React.Component {
                         <CardSection>
                             <TouchableOpacity
                                 onPress={
-                                    () =>
-                                        // this.props.navigation.navigate('Home')
-                                        this.handleLogin()
+                                    () => {
+                                        if (this.state.forgetPassword) {
+                                            this.resetPassword()
+                                        }
+                                        else {
+                                            this.handleLogin()
+
+                                        }
+                                    }
                                 }
                                 style={styles.buttonStyle} >
                                 <View style={{ alignSelf: 'center' }}><View >
                                     {this.state.spinnerShow ?
                                         this.showSpinner()
                                         :
-                                        <Text style={styles.textStyle}>Login</Text>
+                                        <Text style={styles.textStyle}>{this.state.forgetPassword ? "Reset password" : "Login"}</Text>
                                     }
                                 </View>
                                 </View>
