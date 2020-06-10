@@ -10,17 +10,51 @@ import {
     Dimensions,
     KeyboardAvoidingView,
     Picker,
-    AsyncStorage
+    AsyncStorage,
+    ActivityIndicator
 } from 'react-native';
 import constants from '../Constants'
 import { Button, CardSection, Spinner } from '../components/common';
 import auth from '@react-native-firebase/auth';
-import { Overlay } from 'react-native-elements';
+import { StackActions } from '@react-navigation/native';
 
 const WIDTH = Math.round(Dimensions.get('window').width); a = 2;
 
 class Settings extends React.Component {
-    state = { stateLanguage: '', userInfo: '', loggedIn: false, email: '', password: '', spinnerShow: false, isSignup: false, forgetPassword: false }
+    constructor(props) {
+        super(props)
+        this.state = {
+            stateLanguage: '',
+            userInfo: '',
+            loggedIn: true,
+            email: '',
+            password: '',
+            spinnerShow: false,
+            isSignup: false,
+            forgetPassword: false
+        }
+    }
+    componentDidMount() {
+        // await AsyncStorage.removeItem('AccessToken');
+        this.gettingAsyncData();
+    }
+    gettingAsyncData = async () => {
+        console.log("hello hassam ")
+        let userIdSimple = await AsyncStorage.getItem('AccessTokenSimpleLogin');
+        console.log("hahaha : 1")
+        if (userIdSimple) {
+            console.log("hahaha : 2")
+            this.setState({ loggedIn: false }, () => {
+                const pushAction = StackActions.replace('Drawer',{screenProps:this.props.navigation});
+                this.props.navigation.dispatch(pushAction);
+            })
+
+        }
+        else {
+            console.log("hahaha : 3")
+            this.setState({ loggedIn: false }, () => console.log('I am blalalal'))
+        }
+    }
     handleLogin = () => {
         this.setState({ spinnerShow: true })
         if (this.state.email == '' || this.state.password == '') {
@@ -33,8 +67,9 @@ class Settings extends React.Component {
                 .then((response) => {
                     this.setState({ spinnerShow: false })
                     console.log('The response is ', response)
-                    // this.props.navigation.navigate('Home')
                     AsyncStorage.setItem('AccessTokenSimpleLogin', response.user.uid);
+                    const pushAction = StackActions.replace('Drawer',{screenProps:this.props.navigation});
+                    this.props.navigation.dispatch(pushAction);
                 })
                 .catch((error) => {
                     this.setState({ spinnerShow: false }, () => alert("Your error is :\n" + error))
@@ -86,53 +121,40 @@ class Settings extends React.Component {
         }
 
     }
-    showSpinner() {
+    showSpinner(size) {
         return (<View style={{}}>
-            <Spinner />
+            <ActivityIndicator size={size} color={constants.whiteColor} />
         </View>)
 
     }
     render() {
+        console.disableYellowBox = true
         return (
             <View style={styles.MainContainer}>
-                <View style={styles.backgroundImageStyle}>
-                    <View >
-                        <Text style={styles.logoStyle}>
-                            WALLET MANAGER
-                        </Text>
+                {this.state.loggedIn
+                    ?
+                    <View style={{
+                        flex: 1, alignItems: 'center',
+                        justifyContent: 'center',
+                    }}>
+                        {this.showSpinner("large")}
                     </View>
-                    <View style={{ marginTop: -50 }}>
-                        <View>
-                            <TextInput
-                                placeholder='Phone number, email address or username'
-                                placeholderTextColor={constants.whiteColor}
-                                underlineColorAndroid='transparent'
-                                onChangeText={email => this.setState({ email })}
-                                value={this.state.email}
-                                style={{
-                                    marginTop: 10,
-                                    paddingLeft: 10,
-                                    width: WIDTH - 55,
-                                    height: 50,
-                                    fontSize: 15,
-                                    backgroundColor: 'rgba(0,0,0,0.02)',
-                                    borderColor: this.state.isSignup ? constants.greenColor : constants.redColor,
-                                    shadowOpacity: 2,
-                                    borderRadius: 12,
-                                    borderWidth: 1,
-                                    marginHorizontal: 25,
-                                    color: constants.whiteColor
-                                }} />
+
+                    :
+                    <View style={styles.backgroundImageStyle}>
+                        <View >
+                            <Text style={styles.logoStyle}>
+                                WALLET MANAGER
+                        </Text>
                         </View>
-                        {!this.state.forgetPassword &&
+                        <View style={{ marginTop: -50 }}>
                             <View>
                                 <TextInput
-                                    secureTextEntry
-                                    placeholder='Password'
+                                    placeholder='Phone number, email address or username'
                                     placeholderTextColor={constants.whiteColor}
                                     underlineColorAndroid='transparent'
-                                    onChangeText={password => this.setState({ password })}
-                                    value={this.state.password}
+                                    onChangeText={email => this.setState({ email })}
+                                    value={this.state.email}
                                     style={{
                                         marginTop: 10,
                                         paddingLeft: 10,
@@ -148,105 +170,130 @@ class Settings extends React.Component {
                                         color: constants.whiteColor
                                     }} />
                             </View>
+                            {!this.state.forgetPassword &&
+                                <View>
+                                    <TextInput
+                                        secureTextEntry
+                                        placeholder='Password'
+                                        placeholderTextColor={constants.whiteColor}
+                                        underlineColorAndroid='transparent'
+                                        onChangeText={password => this.setState({ password })}
+                                        value={this.state.password}
+                                        style={{
+                                            marginTop: 10,
+                                            paddingLeft: 10,
+                                            width: WIDTH - 55,
+                                            height: 50,
+                                            fontSize: 15,
+                                            backgroundColor: 'rgba(0,0,0,0.02)',
+                                            borderColor: this.state.isSignup ? constants.greenColor : constants.redColor,
+                                            shadowOpacity: 2,
+                                            borderRadius: 12,
+                                            borderWidth: 1,
+                                            marginHorizontal: 25,
+                                            color: constants.whiteColor
+                                        }} />
+                                </View>
+                            }
+                        </View>
+
+                        <View style={{ marginTop: 7 }}>
+                            <TouchableOpacity onPress={() => this.setState({ forgetPassword: !this.state.forgetPassword, isSignup: false })}
+                                style={{ flexDirection: 'row' }}
+                            >
+
+                                <Text style={{ color: constants.whiteColor, fontSize: 12 }}>{this.state.forgetPassword ? "" : "Forgot your Login details?"}</Text>
+                                <Text style={{ color: constants.whiteColor, fontSize: 12, fontWeight: 'bold' }}> {this.state.forgetPassword ? "Go to Login Screen" : "Get help signing in"}</Text>
+
+                            </TouchableOpacity>
+                        </View>
+                        {this.state.isSignup
+                            ?
+                            <CardSection>
+                                <TouchableOpacity
+                                    onPress={
+                                        () => {
+                                            if (this.state.forgetPassword) {
+                                                this.resetPassword()
+                                            }
+                                            else {
+                                                this.handleSignup()
+
+                                            }
+                                        }
+                                    }
+                                    style={styles.buttonStyleGreen} >
+                                    <View style={{ alignSelf: 'center' }}><View >
+                                        {this.state.spinnerShow ?
+                                            this.showSpinner("large")
+                                            :
+                                            <Text style={styles.textStyle}>{this.state.forgetPassword ? "Reset password" : "Sign Up"}</Text>
+                                        }
+                                    </View>
+                                    </View>
+                                </TouchableOpacity>
+
+                            </CardSection>
+                            :
+
+                            <CardSection>
+                                <TouchableOpacity
+                                    onPress={
+                                        () => {
+                                            if (this.state.forgetPassword) {
+                                                this.resetPassword()
+                                            }
+                                            else {
+                                                this.handleLogin()
+
+                                            }
+                                        }
+                                    }
+                                    style={styles.buttonStyle} >
+                                    <View style={{ alignSelf: 'center' }}><View >
+                                        {this.state.spinnerShow ?
+                                            this.showSpinner("large")
+                                            :
+                                            <Text style={styles.textStyle}>{this.state.forgetPassword ? "Reset password" : "Login"}</Text>
+                                        }
+                                    </View>
+                                    </View>
+                                </TouchableOpacity>
+
+                            </CardSection>
                         }
-                    </View>
-
-                    <View style={{ marginTop: 7 }}>
-                        <TouchableOpacity onPress={() => this.setState({ forgetPassword: !this.state.forgetPassword })}
-                            style={{ flexDirection: 'row' }}
-                        >
-
-                            <Text style={{ color: constants.whiteColor, fontSize: 12 }}>{this.state.forgetPassword ? "" : "Forgot your Login details?"}</Text>
-                            <Text style={{ color: constants.whiteColor, fontSize: 12, fontWeight: 'bold' }}> {this.state.forgetPassword ? "Go to Login Screen" : "Get help signing in"}</Text>
-
-                        </TouchableOpacity>
-                    </View>
-                    {this.state.isSignup
-                        ?
-                        <CardSection>
-                            <TouchableOpacity
-                                onPress={
-                                    () => {
-                                        if (this.state.forgetPassword) {
-                                            this.resetPassword()
-                                        }
-                                        else {
-                                            this.handleSignup()
-
-                                        }
-                                    }
-                                }
-                                style={styles.buttonStyleGreen} >
-                                <View style={{ alignSelf: 'center' }}><View >
-                                    {this.state.spinnerShow ?
-                                        this.showSpinner()
-                                        :
-                                        <Text style={styles.textStyle}>{this.state.forgetPassword ? "Reset password" : "Sign Up"}</Text>
-                                    }
-                                </View>
-                                </View>
-                            </TouchableOpacity>
-
-                        </CardSection>
-                        :
-
-                        <CardSection>
-                            <TouchableOpacity
-                                onPress={
-                                    () => {
-                                        if (this.state.forgetPassword) {
-                                            this.resetPassword()
-                                        }
-                                        else {
-                                            this.handleLogin()
-
-                                        }
-                                    }
-                                }
-                                style={styles.buttonStyle} >
-                                <View style={{ alignSelf: 'center' }}><View >
-                                    {this.state.spinnerShow ?
-                                        this.showSpinner()
-                                        :
-                                        <Text style={styles.textStyle}>{this.state.forgetPassword ? "Reset password" : "Login"}</Text>
-                                    }
-                                </View>
-                                </View>
-                            </TouchableOpacity>
-
-                        </CardSection>
-                    }
-                    {/* <GoogleSigninButton
+                        {/* <GoogleSigninButton
                         style={{ width: 192, height: 48 }}
                         size={GoogleSigninButton.Size.Wide}
                         color={GoogleSigninButton.Color.Dark}
                         onPress={this._signIn}
                         disabled={this.state.isSigninInProgress} /> */}
-                    <View>
-                        <Text style={{ color: constants.whiteColor, marginTop: 10 }}>
-                            -------------------OR -------------------
+                        <View>
+                            <Text style={{ color: constants.whiteColor, marginTop: 10 }}>
+                                -------------------OR -------------------
                     </Text>
-                    </View>
-                    <View>
-                        <TouchableOpacity style={{ flexDirection: 'row' }}
-                            //  onPress={() => this.props.navigation.navigate('Welcome')}
-                            onPress={() => this.setState({ isSignup: !this.state.isSignup })}
-                        >
-                            <Text style={{ color: constants.whiteColor, marginTop: 10, fontSize: 12 }}>
-                                {this.state.isSignup ? "Already have an account" : "Don't have an account?"}
-                            </Text>
-                            <Text style={{ color: constants.whiteColor, marginTop: 10, fontSize: 12, fontWeight: 'bold' }}>
-                                {this.state.isSignup ? " Login" : " Sign up"}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                        </View>
+                        <View>
+                            <TouchableOpacity style={{ flexDirection: 'row' }}
+                                //  onPress={() => this.props.navigation.navigate('Welcome')}
+                                onPress={() => this.setState({ isSignup: !this.state.isSignup, forgetPassword: false })}
+                            >
+                                <Text style={{ color: constants.whiteColor, marginTop: 10, fontSize: 12 }}>
+                                    {this.state.isSignup ? "Already have an account" : "Don't have an account?"}
+                                </Text>
+                                <Text style={{ color: constants.whiteColor, marginTop: 10, fontSize: 12, fontWeight: 'bold' }}>
+                                    {this.state.isSignup ? " Login" : " Sign up"}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
 
-                    <View style={styles.bottomView}>
-                        <Text style={{ color: constants.whiteColor, fontSize: 12 }}>
-                            WALLET MANAGER "manage my pocket"
+                        <View style={styles.bottomView}>
+                            <Text style={{ color: constants.whiteColor, fontSize: 12 }}>
+                                WALLET MANAGER "manage your pocket"
                     </Text>
+                        </View>
                     </View>
-                </View>
+                }
             </View>
 
         );
